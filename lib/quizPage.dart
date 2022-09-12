@@ -79,9 +79,6 @@ class _quizPageState extends State<quizPage> {
       showSnackBar(context, 'Invalid Code');
     }
 
-    test();
-    print('ho');
-    return Data.quizItems[0];
   }
 
   // int endTime = DateTime.now().millisecondsSinceEpoch + 1000 * 3000;
@@ -225,7 +222,7 @@ class _quizPageState extends State<quizPage> {
                 builder: (context, snapshot) {
                   if (snapshot.data == null) {
                     return  SpinKitFadingCircle(
-                      color: Colors.green,
+                      color: Color(0xff64E54C),
                       size: 50.0,
                     );
                   } else {
