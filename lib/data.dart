@@ -14,7 +14,7 @@ List<QuizData> q_data1 = [
   QuizData("https://res.cloudinary.com/docvlyucw/image/upload/v1662390258/Alpha%20Protocol/StoryLine_1/Level5.png",'AC1L5'),
   QuizData("https://res.cloudinary.com/docvlyucw/image/upload/v1662390258/Alpha%20Protocol/StoryLine_1/Level6.png",'AP1L6'),
   QuizData("https://res.cloudinary.com/docvlyucw/image/upload/v1662390258/Alpha%20Protocol/StoryLine_1/Level7.png",'LF1L7'),
-  QuizData("https://res.cloudinary.com/docvlyucw/image/upload/v1662390258/Alpha%20Protocol/StoryLine_1/Level8.png",'APGEL8'),
+  QuizData("https://res.cloudinary.com/docvlyucw/image/upload/v1662390258/Alpha%20Protocol/Exit/Exit.png",'APGEL8'),
 
 ];
 
