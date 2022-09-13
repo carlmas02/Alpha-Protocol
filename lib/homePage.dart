@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:google_fonts/google_fonts.dart';
-// import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;
 import 'package:hunt/quizPage.dart';
 import 'themes.dart' as Theme;
 
@@ -12,13 +15,59 @@ class homePage extends StatefulWidget {
 }
 
 class _homePageState extends State<homePage> {
+
+  // variables
   String resp;
   final otp = TextEditingController();
+  bool isLoading  = false;
+
+  //Snackbar
+  void showSnackBar(BuildContext context,text) {
+    final snackBar = SnackBar(
+      content: Text(text,
+        style: TextStyle(color: Color(0xff181920),
+            fontFamily: GoogleFonts.varela().fontFamily),
+      ),
+      backgroundColor: Color(0xff64E54C),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(50),
+      elevation: 20,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> logUser() async {
+    http.Response resp = await http.post(
+      Uri.parse('https://alphaprotocol.herokuapp.com/ap/verotp'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode([
+        {"code":otp.text}
+      ]),
+    );
+
+    if(resp.statusCode==200){
+      Navigator.of(context).pop();
+      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>quizPage(otp : otp.text)));
+
+    }else if(resp.statusCode==400){
+      Navigator.of(context).pop();
+      print('here');
+      showSnackBar(context, 'Invalid Code');
+    }
+    otp.clear();
+  }
 
   int startGame() {
-    // print(otp.text);
-    // Navigator.pushNamed(context, '/quiz');
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>quizPage(otp : otp.text)));
+
+    showDialog(context: context, builder: (context){
+      return Center(child: CircularProgressIndicator());
+    });
+
+    logUser();
+    // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>quizPage(otp : otp.text)));
+
   }
 
   @override
@@ -70,8 +119,15 @@ class _homePageState extends State<homePage> {
                   ElevatedButton(
                     style: Theme.button1,
                     child: Text("Start"),
+
                     onPressed: () {
+                      setState(() {
+                        isLoading = true;
+                      });
                       startGame();
+                      setState(() {
+                        isLoading = false;
+                      });
 
                     },
                   )
