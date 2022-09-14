@@ -56,7 +56,7 @@ class _homePageState extends State<homePage> {
       print('here');
       showSnackBar(context, 'Invalid Code');
     }
-    otp.clear();
+    // otp.clear();
   }
 
   int startGame() {

@@ -160,9 +160,10 @@ class _quizPageState extends State<quizPage> {
   @override
   void initState() {
     countTimer();
+    print(widget.otp);
     // quizIndex = int.parse(widget.otp[3]) -1 ;
     quizIndex =1;
-    print('here');
+
     super.initState();
   }
 
@@ -176,7 +177,7 @@ class _quizPageState extends State<quizPage> {
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.qr_code_scanner),
             onPressed: scanBarCode,
-            // onPressed: test2,
+            //onPressed: test2,
           ),
           appBar: AppBar(
             leading: Icon(
