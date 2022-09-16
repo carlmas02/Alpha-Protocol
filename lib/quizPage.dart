@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_image/network.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hunt/errorPage.dart';
 import 'package:hunt/finalPage.dart';
 import 'package:hunt/main.dart';
 import 'package:http/http.dart' as http;
@@ -34,10 +37,9 @@ class _quizPageState extends State<quizPage> {
   int noQuiz = 8; //length -1
   int quizIndex;
 
-
   //timer
-  int mainSec = 600;
-  int sec = 600;
+  int mainSec = 1800;
+  int sec = 1800;
   Timer timer;
 
   //Snackbar
@@ -63,14 +65,14 @@ class _quizPageState extends State<quizPage> {
     int min = (time / 60).floor();
     String minute = min.toString().length <= 1 ? "0$min" : "$min";
     String second = sec.toString().length <= 1 ? "0$sec" : "$sec";
-    return "$minute min $second sec   $widget.otp";
+    return "$minute min $second sec";
   }
 
   // Time to return for API post
   returnTime(time) {
     int sec = time % 60;
     int min = (time / 60).floor();
-    return [sec, min];
+    return "$min.$sec";
   }
 
   // countdown timer function
@@ -96,7 +98,7 @@ class _quizPageState extends State<quizPage> {
       final ScanResult = await FlutterBarcodeScanner.scanBarcode(
           '#FFF44336', "Cancel", true, ScanMode.BARCODE);
       if (!mounted) return;
-      if (ScanResult == Data.quizItems[0][index + 1].answer) {
+      if (ScanResult == Data.quizItems[quizIndex][index + 1].answer) {
         showSnackBar(context, 'Clue Obtained !');
 
         setState(() {
@@ -107,24 +109,34 @@ class _quizPageState extends State<quizPage> {
           timer.cancel();
           // Navigator.of(context).pop();
           print(returnTime(mainSec - sec));
-          http.Response resp = await http.post(
-            Uri.parse('https://alphaprotocol.herokuapp.com/ap/addscr'),
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: jsonEncode([
-              {
-                "otp": widget.otp,
-                "level": index,
-                "minute": returnTime(mainSec - sec)[1],
-                "second": returnTime(mainSec - sec)[0]
-              }
-            ]),
-          );
+          try{
+            http.Response resp = await http.post(
+              Uri.parse('https://alphaprotocol.herokuapp.com/ap/addscr'),
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8',
+              },
+              body: jsonEncode([
+                {
+                  "otp": widget.otp,
+                  "level": index,
+                  "time": double.parse(returnTime(mainSec-sec)),
+                  // "minute": returnTime(mainSec - sec)[1],
+                  // "second": returnTime(mainSec - sec)[0]
+                }
+              ]),
+            );
 
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) =>
-                  finalPage(img: Data.quizItems[0][index].link)));
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) =>
+                    finalPage(img: Data.quizItems[quizIndex][index].link)));
+
+          }on SocketException catch (e) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>
+                errorPage(otp : widget.otp,
+                    level:index,
+                    time:double.parse(returnTime(mainSec-sec)))));
+          }
+
         }
       } else {
         print('no');
@@ -137,32 +149,39 @@ class _quizPageState extends State<quizPage> {
 
   // testing function nothing imp
   Future<void> test2() async {
-    print('hi func');
-    http.Response resp = await http.post(
-      Uri.parse('https://alphaprotocol.herokuapp.com/ap/addscr'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode([
-        {
-          "otp": widget.otp,
-          "level": index,
-          "minute": returnTime(mainSec - sec)[1],
-          "second": returnTime(mainSec - sec)[0]
-        }
-      ]),
-    );
+    try{
+      http.Response resp = await http.post(
+        Uri.parse('https://alphaprotocol.herokuapp.com/ap/addscr'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode([
+          {
+            "otp": widget.otp,
+            "level": index,
+            "time": double.parse(returnTime(mainSec-sec)),
+          }
+        ]),
+      );
 
-    print(resp.statusCode);
+    }on SocketException catch (e) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>
+          errorPage(otp : widget.otp,
+              level:index,
+              time:double.parse(returnTime(mainSec-sec)))));
+    }
+
+
   }
 
   // actual app code
   @override
   void initState() {
     countTimer();
-    print(widget.otp);
-    // quizIndex = int.parse(widget.otp[3]) -1 ;
-    quizIndex =1;
+    //print(widget.otp);
+    quizIndex = int.parse(widget.otp[3]) -1 ;
+    // quizIndex =1;
+    print(quizIndex);
 
     super.initState();
   }
@@ -177,6 +196,7 @@ class _quizPageState extends State<quizPage> {
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.qr_code_scanner),
             onPressed: scanBarCode,
+
             //onPressed: test2,
           ),
           appBar: AppBar(
@@ -200,11 +220,14 @@ class _quizPageState extends State<quizPage> {
                     child: Padding(
                   padding: EdgeInsets.all(12.0),
                   // child : Image.network(Data.quizItems[0][index].link)
-                  child: CachedNetworkImage(
-                    imageUrl: Data.quizItems[quizIndex][index].link,
-                    placeholder: (context, url) => CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => Icon(Icons.error),
-                  ),
+                      child : new Image(
+                        image: new NetworkImageWithRetry(Data.quizItems[quizIndex][index].link),
+                        ),
+                  // child: CachedNetworkImage(
+                  //   imageUrl: Data.quizItems[quizIndex][index].link,
+                  //   placeholder: (context, url) => CircularProgressIndicator(),
+                  //   errorWidget: (context, url, error) => Icon(Icons.error),
+                  // ),
                 )),
                 SizedBox(height: 75)
               ],

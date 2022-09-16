@@ -52,6 +52,7 @@ class _homePageState extends State<homePage> {
       Navigator.of(context).push(MaterialPageRoute(builder: (context)=>quizPage(otp : otp.text)));
 
     }else if(resp.statusCode==400){
+      otp.clear();
       Navigator.of(context).pop();
       print('here');
       showSnackBar(context, 'Invalid Code');
