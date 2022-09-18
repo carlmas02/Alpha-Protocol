@@ -39,8 +39,8 @@ class _quizPageState extends State<quizPage> {
   int quizIndex;
 
   //timer
-  int mainSec = 60; //1800
-  int sec = 60;
+  int mainSec = 1800; //1800
+  int sec = 1800;
   Timer timer;
 
   //Snackbar
