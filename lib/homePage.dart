@@ -66,8 +66,8 @@ class _homePageState extends State<homePage> {
       return Center(child: CircularProgressIndicator());
     });
 
-    logUser();
-    // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>quizPage(otp : otp.text)));
+    //logUser();
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>quizPage(otp : otp.text)));
 
   }
 

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_image/network.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hunt/errorPage.dart';
 import 'package:hunt/finalPage.dart';
@@ -38,8 +39,8 @@ class _quizPageState extends State<quizPage> {
   int quizIndex;
 
   //timer
-  int mainSec = 1800;
-  int sec = 1800;
+  int mainSec = 60; //1800
+  int sec = 60;
   Timer timer;
 
   //Snackbar
@@ -91,9 +92,24 @@ class _quizPageState extends State<quizPage> {
     });
   }
 
+  // reduce time by 30 sec
+  void reduceTime(){
+
+    if(sec<=30){
+      setState(() {
+        sec=2;
+      });
+    }else{
+      setState(() {
+        sec-=30;
+      });
+    }
+
+  }
+
+
   // BarCode scanning Function
   Future<void> scanBarCode() async {
-    print(widget.otp);
     try {
       final ScanResult = await FlutterBarcodeScanner.scanBarcode(
           '#FFF44336', "Cancel", true, ScanMode.BARCODE);
@@ -138,10 +154,17 @@ class _quizPageState extends State<quizPage> {
           }
 
         }
-      } else {
-        print('no');
-        showSnackBar(context, 'Wrong Lead !');
+      } else if (ScanResult=='-1') {
+        print('test bro');
+
+      }else{
+        print(ScanResult);
+        print(ScanResult.runtimeType);
+        reduceTime();
+        showSnackBar(context, 'Wrong Lead ! Time deducted by 30 seconds ');
       }
+    } on FormatException {
+      print('back');
     } on PlatformException {
       print("error");
     }
@@ -174,9 +197,19 @@ class _quizPageState extends State<quizPage> {
 
   }
 
+  //disable screenshots
+
+  Future<void> disableCapture() async {
+    //disable screenshots and record screen in current screen
+    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+  }
+
+
   // actual app code
   @override
   void initState() {
+
+    disableCapture();
     countTimer();
     //print(widget.otp);
     quizIndex = int.parse(widget.otp[3]) -1 ;
